@@ -51,4 +51,50 @@ contract Election {
         require(!electionStarted, "Election already started");
         electionStarted = true;
     }
+// Function to display candidate details
+    function getCandidateDetails(uint256 _id) public view returns (string memory, string memory, uint256) {
+        require(_id < candidates.length, "Invalid candidate ID");
+        Candidate memory candidate = candidates[_id];
+        return (candidate.name, candidate.proposal, candidate.voteCount);
+    }
+
+    // Function to show the winner of the election
+    function getWinner() public view returns (string memory, uint256, uint256) {
+        require(electionStarted, "Election has not started yet");
+        require(candidates.length > 0, "No candidates registered");
+
+        Candidate memory winner;
+        for (uint256 i = 0; i < candidates.length; i++) {
+            if (candidates[i].voteCount > winner.voteCount) {
+                winner = candidates[i];
+            }
+        }
+
+        return (winner.name, winner.voteCount, candidates.length);
+    }
+
+    // Function to delegate voting rights
+    function delegateVote(address _delegateAddress) public {
+        require(electionStarted, "Election has not started yet");
+        require(!voters[msg.sender].hasVoted, "Voter has already voted");
+        require(!voters[msg.sender].hasDelegated, "Voter has already delegated their vote");
+        require(_delegateAddress != msg.sender, "Cannot delegate vote to yourself");
+        require(voters[_delegateAddress].isRegistered, "Delegate address is not registered");
+
+        voters[msg.sender].hasDelegated = true;
+        voters[msg.sender].delegate = _delegateAddress;
+    }
+
+    // Function to cast the vote
+    function castVote(uint256 _candidateId) public {
+        require(electionStarted, "Election has not started yet");
+        require(!voters[msg.sender].hasVoted, "Voter has already voted");
+        require(!voters[msg.sender].hasDelegated, "Voter has delegated their vote");
+
+        require(_candidateId < candidates.length, "Invalid candidate ID");
+
+        candidates[_candidateId].voteCount++;
+        voters[msg.sender].vote = _candidateId;
+        voters[msg.sender].hasVoted = true;
+    }
 }
