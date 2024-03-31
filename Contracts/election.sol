@@ -97,4 +97,30 @@ contract Election {
         voters[msg.sender].vote = _candidateId;
         voters[msg.sender].hasVoted = true;
     }
+ // Function to end the election
+    function endElection() public onlyAdmin {
+        require(electionStarted, "Election has not started yet");
+        electionStarted = false;
+    }
+
+    // Function to show election results (candidate-wise)
+    function getElectionResults(uint256 _candidateId) public view returns (uint256, string memory, uint256) {
+        require(_candidateId < candidates.length, "Invalid candidate ID");
+        Candidate memory candidate = candidates[_candidateId];
+        return (_candidateId, candidate.name, candidate.voteCount);
+    }
+
+    // Function to view a voter's profile
+    function getVoterProfile(address _voter) public view returns (string memory, string memory, bool) {
+        require(voters[_voter].isRegistered, "Voter is not registered");
+
+        string memory votedCandidate;
+        if (voters[_voter].hasVoted) {
+            votedCandidate = candidates[voters[_voter].vote].name;
+        } else {
+            votedCandidate = "Not voted yet";
+        }
+
+        return ("Voter's name", votedCandidate, voters[_voter].hasDelegated);
+    }
 }
